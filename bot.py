@@ -74,12 +74,10 @@ async def command_mute_handler(message: Message) -> None:
     if await is_user_admin(message) == False and message.from_user.id != 6716599569:
         return
 
-    # Проверка: есть ли реплай
     if not message.reply_to_message:
         await message.reply("Damn who i should mute")
         return
 
-    # Проверка: есть ли аргумент (время)
     args = message.text.strip().split()
     if len(args) < 2:
         await mute_user(message, datetime.now(timezone.utc) + 30*TIME_MULTIPLIERS['m'])
@@ -106,10 +104,10 @@ async def command_mute_handler(message: Message) -> None:
     except Exception as e:
         await message.reply(f"huh. wha?")
 
-# /unmute command
-@dp.message(Command("unmute"))
+# /unmute and /unban command
+@dp.message(Command(commands=["unmute", "unban"]))
 async def command_unmute_handler(message: Message) -> None:
-    if await is_user_admin(message) and message.from_user.id != 6716599569:
+    if await is_user_admin(message) == False or message.from_user.id != 6716599569:
         return
     
     args = message.text.strip().split()
@@ -129,7 +127,34 @@ async def command_unmute_handler(message: Message) -> None:
         await message.reply(f"Snail {('@'+str(message.reply_to_message.from_user.username)) if message.reply_to_message else user_id} again can be snailing")
     except:
         await message.reply("huh. wha?")
+
+# /ban command
+@dp.message(Command("ban"))
+async def command_ban_handler(message: Message) -> None:
+    if await is_user_admin(message) == False:
+        return
     
+    if not message.reply_to_message:
+        await message.reply("Looks like im not the only one brainless creature in this chat")
+        return
+    
+    try:
+        await message.chat.restrict(
+            user_id=message.reply_to_message.from_user.id,
+            permissions=MUTE_PERMISSIONS
+            )
+        await message.reply_to_message.delete()
+        await message.reply(f"@{message.from_user.username} has gone")
+    except:
+        await message.reply("damn this guy is lucky")
+
+# /insane command
+@dp.message()
+async def message_handler(message: Message) -> None:
+
+    if message.text:
+        if "insane" in message.text.lower():
+            await bot.send_message(chat_id=message.chat.id, text="insane")
 
 async def main() -> None:
     # And the run events dispatching
