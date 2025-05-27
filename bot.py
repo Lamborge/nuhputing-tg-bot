@@ -1,7 +1,8 @@
 import asyncio
 import logging
 import sys
-from os import getenv
+import os
+from dotenv import load_dotenv
 
 import re
 from datetime import datetime, timedelta, timezone
@@ -12,25 +13,20 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, ChatPermissions, ChatMemberAdministrator, ChatMemberOwner
 
-# Bot token can be obtained via https://t.me/BotFather
-TOKEN = "7752443481:AAEtGcb91cpYMHr3e6vONEzNQ82_aTbINB4"
-
-# All handlers should be attached to the Router (or Dispatcher)
-
 #GLOBAL VARIABLES
 dp = Dispatcher()
-bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = None
 
-# Convert into timedelta
+# Convert text time suffix into timedelta
 TIME_MULTIPLIERS = {
     'm': timedelta(minutes=1),
     'h': timedelta(hours=1),
     'd': timedelta(days=1),
     'w': timedelta(weeks=1),
-    'y': timedelta(days=365)  # приблизительно 1 год
+    'y': timedelta(days=365)
 }
 
-# Ограничения чата (запретить отправку сообщений)
+# Permissions for muting
 MUTE_PERMISSIONS = ChatPermissions(
     can_send_messages=False,
     can_send_media_messages=False,
@@ -38,6 +34,7 @@ MUTE_PERMISSIONS = ChatPermissions(
     can_add_web_page_previews=False
 )
 
+# Permissions for unmuting
 UNMUTE_PERMISSIONS = ChatPermissions(
     can_send_messages=True,
     can_send_media_messages=True,
@@ -45,13 +42,7 @@ UNMUTE_PERMISSIONS = ChatPermissions(
     can_add_web_page_previews=True
 )
 
-@dp.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
-    """
-    This handler receives messages with `/start` command
-    """
-    await message.answer(f"You have been Nuh Uhed")
-
+# func for muting user
 async def mute_user(message: Message, until_date: datetime):
     await message.chat.restrict(
             user_id = message.reply_to_message.from_user.id,
@@ -60,6 +51,7 @@ async def mute_user(message: Message, until_date: datetime):
         )
     await message.reply(f"Snail @{message.reply_to_message.from_user.username} went to eat leaves")
 
+# func for checking is user promoted to admin
 async def is_user_admin(message: Message) -> bool:
     member = await bot.get_chat_member(chat_id=message.chat.id, user_id=message.from_user.id)
     if isinstance(member, (ChatMemberAdministrator, ChatMemberOwner)):
@@ -67,6 +59,15 @@ async def is_user_admin(message: Message) -> bool:
     else:
         return False
 
+# /start command
+@dp.message(CommandStart())
+async def command_start_handler(message: Message) -> None:
+    """
+    This handler receives messages with `/start` command
+    """
+    await message.answer(f"You have been Nuh Uhed")
+
+# /mute command
 @dp.message(Command("mute"))
 async def command_mute_handler(message: Message) -> None:
 
@@ -105,6 +106,7 @@ async def command_mute_handler(message: Message) -> None:
     except Exception as e:
         await message.reply(f"huh. wha?")
 
+# /unmute command
 @dp.message(Command("unmute"))
 async def command_unmute_handler(message: Message) -> None:
     if await is_user_admin(message) and message.from_user.id != 6716599569:
@@ -130,13 +132,13 @@ async def command_unmute_handler(message: Message) -> None:
     
 
 async def main() -> None:
-    # Initialize Bot instance with default bot properties which will be passed to all API calls
-    
-
     # And the run events dispatching
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    load_dotenv()
+    token = os.getenv("BOT_TOKEN")
+    bot = Bot(token=token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     asyncio.run(main())
