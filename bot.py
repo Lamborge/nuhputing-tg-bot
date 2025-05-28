@@ -14,11 +14,17 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, ChatPermissions, ChatMemberAdministrator, ChatMemberOwner
 
-#GLOBAL VARIABLES
+#======GLOBAL VARIABLES======
 dp = Dispatcher()
 bot = None
 
-
+# Array of stickers file_id for randomly sending
+R_STICKERS = [
+    "CAACAgIAAxkBAAEBPoNoNv6mNQkd8VIWtgd7jyukr4ilSgAC-XMAAtcKCEu1Hewfp7mnsDYE", # rigby falling
+    "CAACAgIAAxkBAAEBPoVoN28Qm3AhHt7h04xu_xrJdsIiAQACZHwAAsFVaEnML10-rEKokjYE", # :3 bunny
+    "CAACAgIAAxkBAAEBPoZoN28QzZBIuogvTyIAAc0BYU4dZgkAArtuAAJobMBLgM1iVsLVM0I2BA", # ec chan in bucket
+    "CAACAgIAAxkBAAEBPodoN28QWgNo-qxNGmo7A0PelO6EcAACMG0AAvXZuUldUB8Kg-HzXjYE" # glorp orange girl
+]
 
 # Convert text time suffix into timedelta
 TIME_MULTIPLIERS = {
@@ -48,6 +54,9 @@ UNMUTE_PERMISSIONS = ChatPermissions(
 # Strings for error messages
 ERROR_EXCEPTION_STRING= "huh. wha?"
 ERROR_NO_REPLY_STRING = "no snail detected"
+#======END GLOBAL VARIABLES======
+
+
 
 # func for muting user
 async def mute_user(message: Message, until_date: datetime):
@@ -58,7 +67,7 @@ async def mute_user(message: Message, until_date: datetime):
         )
     await message.reply(f"Snail @{message.reply_to_message.from_user.username} went to eat leaves")
 
-# func for checking is user promoted to admin
+# func for checking is user admin
 async def is_user_admin(message: Message) -> bool:
     member = await bot.get_chat_member(chat_id=message.chat.id, user_id=message.from_user.id)
     if isinstance(member, (ChatMemberAdministrator, ChatMemberOwner)):
@@ -67,6 +76,8 @@ async def is_user_admin(message: Message) -> bool:
         return True
     
     return False
+
+
 
 # /start command
 @dp.message(CommandStart())
@@ -173,27 +184,45 @@ async def message_handler(message: Message) -> None:
             chance = 0
 
             if _msg == "insane": # if msg text is just "insane" then chance to reply is 15%
-                chance = 0.15
+                chance = 0.23
             else:
-                chance = 0.1
+                chance = 0.15
             
             if random.random() < chance:
                 await message.reply("insane")
+            return
 
         # reply for yo
-        if re.search(r"\byo\b", _msg):
+        elif re.search(r"\byo\b", _msg):
             await message.reply("gurt")
+            return
 
         # reply for fumo
-        if "fumo" in _msg:
+        elif "fumo" in _msg:
             await message.reply("OMG FUMO!!11!!1!11!!!" if random.random() < 0.5 else "ᗜˬᗜ")
+            return
         
         # reply for crazy
-        if re.search(r"\bcrazy\b", _msg):
-            await message.reply("Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats. And rats make me crazy.")
+        elif re.search(r"\bcrazy\b", _msg):
+            if random.random() < 0.2:
+                await message.reply("Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats. And rats make me crazy.")
+                return
 
-    if random.random() < 0.02: # 2% to send a sticker in reply
-        await message.reply_sticker(sticker='CAACAgIAAxkBAAEBPoNoNv6mNQkd8VIWtgd7jyukr4ilSgAC-XMAAtcKCEu1Hewfp7mnsDYE')
+        # reply for snail
+        elif re.search(r"\bsnail\b", _msg):
+            await message.reply("🐌")
+            return
+        
+        # reply for nah, nuh, uh
+        elif re.search(r"\bnah\b", _msg) or re.search(r"\bnuh\b", _msg) or re.search(r"\suh\b", _msg):
+            if random.random() < 0.5:
+                await message.reply("Nuh uh")
+                return
+
+    # 2% to send a sticker in reply
+    if random.random() < 0.02:
+        await message.reply_sticker(sticker=random.choice(R_STICKERS))
+        return
         
 
 async def main() -> None:
