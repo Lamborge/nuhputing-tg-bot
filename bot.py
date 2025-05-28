@@ -3,6 +3,7 @@ import logging
 import sys
 import os
 from dotenv import load_dotenv
+import random
 
 import re
 from datetime import datetime, timedelta, timezone
@@ -31,7 +32,7 @@ MUTE_PERMISSIONS = ChatPermissions(
     can_send_messages=False,
     can_send_media_messages=False,
     can_send_other_messages=False,
-    can_add_web_page_previews=False
+    can_add_web_page_previews=False,
 )
 
 # Permissions for unmuting
@@ -41,6 +42,10 @@ UNMUTE_PERMISSIONS = ChatPermissions(
     can_send_other_messages=True,
     can_add_web_page_previews=True
 )
+
+# Strings for error messages
+ERROR_EXCEPTION_STRING= "huh. wha?"
+ERROR_NO_REPLY_STRING = "no snail detected"
 
 # func for muting user
 async def mute_user(message: Message, until_date: datetime):
@@ -56,8 +61,10 @@ async def is_user_admin(message: Message) -> bool:
     member = await bot.get_chat_member(chat_id=message.chat.id, user_id=message.from_user.id)
     if isinstance(member, (ChatMemberAdministrator, ChatMemberOwner)):
         return True
-    else:
-        return False
+    if message.from_user.username == "GroupAnonymousBot":
+        return True
+    
+    return False
 
 # /start command
 @dp.message(CommandStart())
@@ -75,25 +82,24 @@ async def command_mute_handler(message: Message) -> None:
         return
 
     if not message.reply_to_message:
-        await message.reply("Damn who i should mute")
+        await message.reply(ERROR_NO_REPLY_STRING)
         return
 
     args = message.text.strip().split()
+    # if time is not specified then mute for 30m
     if len(args) < 2:
         await mute_user(message, datetime.now(timezone.utc) + 30*TIME_MULTIPLIERS['m'])
         return
 
     duration_str = args[1]
 
-    # Разбор времени
+    # Parse time argument
     match = re.match(r"^(\d+)([smhdwy]?)$", duration_str)
     if not match:
         await message.reply("Dang what is this unit of time")
         return
 
-    await bot.delete_message(message.chat.id, message.reply_to_message.message_id)
-
-    amount = int(match[1])
+    amount = int(match.group(1))
     unit = match.group(2) or "m"
 
     mute_duration = amount * TIME_MULTIPLIERS[unit]
@@ -101,32 +107,39 @@ async def command_mute_handler(message: Message) -> None:
 
     try:
         await mute_user(message, until_date)
-    except Exception as e:
-        await message.reply(f"huh. wha?")
+        await bot.delete_message(message.chat.id, message.reply_to_message.message_id)
+    except:
+        await message.reply(ERROR_EXCEPTION_STRING)
 
 # /unmute and /unban command
 @dp.message(Command(commands=["unmute", "unban"]))
 async def command_unmute_handler(message: Message) -> None:
-    if await is_user_admin(message) == False or message.from_user.id != 6716599569:
+    if await is_user_admin(message) == False:
         return
     
     args = message.text.strip().split()
     user_id = None
 
+    # if reply - user id = user id from reply
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
     if len(args) > 1:
         if args[1].isdigit():
             user_id = int(args[1])
+
+    # user id is not none verification
+    if user_id == None:
+        await message.reply(ERROR_NO_REPLY_STRING)
+        return
     
-    try:    
+    try:
         await message.chat.restrict(
                 user_id = user_id,
                 permissions = UNMUTE_PERMISSIONS,
             )
         await message.reply(f"Snail {('@'+str(message.reply_to_message.from_user.username)) if message.reply_to_message else user_id} again can be snailing")
     except:
-        await message.reply("huh. wha?")
+        await message.reply(ERROR_EXCEPTION_STRING)
 
 # /ban command
 @dp.message(Command("ban"))
@@ -135,7 +148,7 @@ async def command_ban_handler(message: Message) -> None:
         return
     
     if not message.reply_to_message:
-        await message.reply("Looks like im not the only one brainless creature in this chat")
+        await message.reply(ERROR_NO_REPLY_STRING)
         return
     
     try:
@@ -144,17 +157,34 @@ async def command_ban_handler(message: Message) -> None:
             permissions=MUTE_PERMISSIONS
             )
         await message.reply_to_message.delete()
-        await message.reply(f"@{message.from_user.username} has gone")
+        await message.reply(f"@{message.reply_to_message.from_user.username} has been touched by the snail")
     except:
-        await message.reply("damn this guy is lucky")
+        await message.reply(ERROR_EXCEPTION_STRING)
 
-# /insane command
 @dp.message()
 async def message_handler(message: Message) -> None:
 
     if message.text:
-        if "insane" in message.text.lower():
-            await bot.send_message(chat_id=message.chat.id, text="insane")
+        _msg = message.text.strip().lower()
+
+        if "insane" in _msg:
+            chance = 0
+
+            if _msg == "insane": # if msg text is just "insane" then chance to reply is 15%
+                chance = 0.15
+            else:
+                chance = 0.1
+            
+            if random.random() < chance:
+                await message.reply("insane")
+
+        # reply for yo
+        if re.search(r"\byo\b", _msg):
+            await message.reply("gurt")
+
+    if random.random() < 0.02: # 2% to send a sticker in reply
+        await message.reply_sticker(sticker='CAACAgIAAxkBAAEBPoNoNv6mNQkd8VIWtgd7jyukr4ilSgAC-XMAAtcKCEu1Hewfp7mnsDYE')
+        
 
 async def main() -> None:
     # And the run events dispatching
