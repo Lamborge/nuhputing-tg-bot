@@ -18,6 +18,8 @@ from aiogram.types import Message, ChatPermissions, ChatMemberAdministrator, Cha
 dp = Dispatcher()
 bot = None
 
+
+
 # Convert text time suffix into timedelta
 TIME_MULTIPLIERS = {
     'm': timedelta(minutes=1),
@@ -181,6 +183,9 @@ async def message_handler(message: Message) -> None:
         # reply for yo
         if re.search(r"\byo\b", _msg):
             await message.reply("gurt")
+
+        if "fumo" in _msg:
+            await message.reply("OMG FUMO!!11!!1!11!!!" if random.random() < 0.5 else "ᗜˬᗜ")
 
     if random.random() < 0.02: # 2% to send a sticker in reply
         await message.reply_sticker(sticker='CAACAgIAAxkBAAEBPoNoNv6mNQkd8VIWtgd7jyukr4ilSgAC-XMAAtcKCEu1Hewfp7mnsDYE')
