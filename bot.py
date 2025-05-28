@@ -219,6 +219,12 @@ async def message_handler(message: Message) -> None:
                 await message.reply("Nuh uh")
                 return
 
+        # reply for apple word or emoji with sticker
+        elif re.search(r"\bapple\b", _msg) or "🍎" in _msg:
+            if random.random() < 0.5:
+                await message.reply_sticker(sticker="CAACAgIAAxkBAAEBPpVoN4GM8Yd4nFZ-oUi0WXfFFjy5VQACfXkAAsTIUUkuYZYvXOR8JTYE")
+                return
+
     # 2% to send a sticker in reply
     if random.random() < 0.02:
         await message.reply_sticker(sticker=random.choice(R_STICKERS))
