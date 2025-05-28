@@ -214,7 +214,7 @@ async def message_handler(message: Message) -> None:
             return
         
         # reply for nah, nuh, uh
-        elif re.search(r"\bnah\b", _msg) or re.search(r"\bnuh\b", _msg) or re.search(r"\suh\b", _msg):
+        elif re.search(r"\bnah\b", _msg) or re.search(r"\bnuh\b", _msg) or re.search(r"\buh\b", _msg):
             if random.random() < 0.5:
                 await message.reply("Nuh uh")
                 return
