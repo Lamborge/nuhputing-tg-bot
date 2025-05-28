@@ -184,8 +184,13 @@ async def message_handler(message: Message) -> None:
         if re.search(r"\byo\b", _msg):
             await message.reply("gurt")
 
+        # reply for fumo
         if "fumo" in _msg:
             await message.reply("OMG FUMO!!11!!1!11!!!" if random.random() < 0.5 else "ᗜˬᗜ")
+        
+        # reply for crazy
+        if re.search(r"\bcrazy\b", _msg):
+            await message.reply("Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats. And rats make me crazy.")
 
     if random.random() < 0.02: # 2% to send a sticker in reply
         await message.reply_sticker(sticker='CAACAgIAAxkBAAEBPoNoNv6mNQkd8VIWtgd7jyukr4ilSgAC-XMAAtcKCEu1Hewfp7mnsDYE')
