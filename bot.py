@@ -199,7 +199,15 @@ async def message_handler(message: Message) -> None:
 
         # reply for fumo
         elif "fumo" in _msg:
-            await message.reply("OMG FUMO!!11!!1!11!!!" if random.random() < 0.5 else "ᗜˬᗜ")
+            choice = random.choice([1, 2, 3])
+            match choice:
+                case 1:
+                    await message.reply("OMG FUMO!!11!!1!11!!!")
+                case 2:
+                    await message.reply("ᗜˬᗜ")
+                case 3: # send orange fumo sticker instead of text message
+                    await message.reply_sticker("CAACAgIAAxkBAAEBPploOGw3pHnPXHunPLVmGOItlP3sywACo2QAAsM1wUmIk7M2F8XEKzYE")
+            
             return
         
         # reply for crazy
